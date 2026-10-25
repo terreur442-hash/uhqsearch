@@ -1,0 +1,363 @@
+# UHQ Search - Routage Intelligent Multi-Moteurs
+
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>UHQ Search - Terminus</title>
+    <style>
+        /* Design Hacker Underground Rouge et Noir */
+        body {
+            font-family: 'Courier New', Courier, monospace;
+            background-color: #050000;
+            color: #ff0000;
+            margin: 0;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            min-height: 100vh;
+        }
+
+        .container {
+            width: 100%;
+            max-width: 900px;
+            text-align: center;
+            padding: 20px;
+            background: rgba(15, 0, 0, 0.9);
+            border: 1px solid #330000;
+            border-radius: 4px;
+            box-shadow: 0 0 20px rgba(255, 0, 0, 0.1);
+            margin-top: 20px;
+        }
+        h1 {
+            color: #ff0000;
+            font-size: 3rem;
+            margin-bottom: 5px;
+            letter-spacing: 3px;
+            font-weight: 900;
+            text-shadow: 0 0 15px #ff0000;
+        }
+
+        .subtitle {
+            color: #550000;
+            margin-bottom: 25px;
+            font-size: 0.85rem;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            font-weight: bold;
+        }
+        .search-controls {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            margin-bottom: 20px;
+        }
+        .selector-box {
+            background: #000000;
+            border: 1px solid #550000;
+            color: #ff3333;
+            padding: 10px;
+
+            font-family: 'Courier New', Courier, monospace;
+            font-weight: bold;
+            font-size: 0.95rem;
+            outline: none;
+            cursor: pointer;
+        }
+        .selector-box optgroup {
+            color: #ff0000;
+            background: #000000;
+            font-style: normal;
+            font-weight: bold;
+        }
+        .selector-box option {
+            background: #050000;
+            color: #ff6666;
+        }
+        .search-box {
+            display: flex;
+            background: #000000;
+
+            border: 1px solid #550000;
+            border-radius: 0px;
+            padding: 8px 15px;
+            transition: all 0.3s;
+        }
+        .search-box:focus-within {
+            border-color: #ff0000;
+            box-shadow: 0 0 15px rgba(255, 0, 0, 0.4);
+        }
+        input[type="text"] {
+            flex: 1;
+            background: none;
+            border: none;
+            color: #ff0000;
+            font-size: 1.1rem;
+            outline: none;
+            font-family: 'Courier New', Courier, monospace;
+        }
+        input::placeholder {
+
+            color: #440000;
+        }
+        button {
+            background: #220000;
+            border: 1px solid #ff0000;
+            color: #ff0000;
+            padding: 8px 25px;
+            cursor: pointer;
+            font-weight: bold;
+            font-size: 0.95rem;
+            font-family: 'Courier New', Courier, monospace;
+            transition: all 0.2s;
+            text-shadow: 0 0 5px #ff0000;
+        }
+        button:hover {
+            background: #ff0000;
+            color: #000000;
+            box-shadow: 0 0 15px #ff0000;
+            text-shadow: none;
+
+        }
+        .console-log {
+            width: 100%;
+            background: #000;
+            border: 1px solid #330000;
+            margin-top: 15px;
+            padding: 15px;
+            box-sizing: border-box;
+            text-align: left;
+            font-size: 0.85rem;
+            color: #990000;
+            display: none;
+            line-height: 1.4;
+        }
+        #resultsContainer {
+            width: 100%;
+            margin-top: 20px;
+            text-align: left;
+            display: none;
+
+        }
+        .result-item {
+            background: #000000;
+            border: 1px solid #ff0000;
+            padding: 15px;
+            margin-bottom: 15px;
+            border-radius: 2px;
+            box-shadow: 0 0 10px rgba(255, 0, 0, 0.1);
+        }
+        .result-title {
+            font-size: 1.1rem;
+            color: #ff3333;
+            font-weight: bold;
+            margin-bottom: 8px;
+        }
+        .result-url {
+            color: #ff0000;
+            font-size: 0.85rem;
+            margin: 5px 0;
+
+            background: #110000;
+            padding: 5px;
+            border: 1px dashed #550000;
+            word-break: break-all;
+            user-select: all;
+        }
+        .result-desc {
+            color: #aaaeaa;
+            font-size: 0.9rem;
+            line-height: 1.4;
+        }
+        .status-panel {
+            border-top: 1px dashed #330000;
+            padding-top: 15px;
+            margin-top: 15px;
+            color: #880000;
+            font-size: 0.8rem;
+            text-align: left;
+        }
+
+        .credits {
+            text-align: right;
+            color: #440000;
+            font-size: 0.75rem;
+            font-weight: bold;
+            letter-spacing: 1px;
+            margin-top: 5px;
+        }
+        .blink {
+            animation: blinker 1.5s linear infinite;
+            color: #ff0000;
+            font-weight: bold;
+        }
+        @keyframes blinker {
+            50% { opacity: 0; }
+        }
+    </style>
+</head>
+<body>
+
+
+<div class="container">
+    <h1>SYSTEM://UHQ_SEARCH</h1>
+    <div class="subtitle">[ Statut : Routage Formulaire Natif ]</div>
+
+    <!-- Utilisation d'un formulaire natif ciblant un nouvel onglet avec méthode GET -->
+    <form id="searchForm" method="GET" target="_blank" onsubmit="return handleSearchSubmit(event)">
+        <div class="search-controls">
+            <select id="engineSelect" class="selector-box">
+                <optgroup label="🌐 SURFACE WEB (Routage Standard)">
+                    <option value="google">Google</option>
+                    <option value="duckduckgo">DuckDuckGo</option>
+                    <option value="bing">Bing</option>
+                    <option value="yahoo">Yahoo Search</option>
+                    <option value="ecosia">Ecosia</option>
+                    <option value="ahmia">Ahmia.fi (Recherche Tor via Clear Web)</option>
+                </optgroup>
+                <optgroup label="🧅 DARK WEB (Indexation Réseau Tor)">
+                    <option value="torch">Torch Engine (.onion profond)</option>
+                    <option value="ddg_onion">DuckDuckGo Tor (.onion masqué)</option>
+
+                    <option value="haystak">Haystak Onion (.onion archives)</option>
+                </optgroup>
+            </select>
+            <div class="search-box">
+                <!-- L'attribut name sera configuré dynamiquement par le script de routage -->
+                <input type="text" id="query" placeholder="root@uhq_search:~# entrer mot_cle..." required autocomplete="off">
+                <button type="submit">EXECUTE</button>
+            </div>
+        </div>
+    </form>
+
+    <div id="constructLog" class="console-log"></div>
+    <div id="resultsContainer"></div>
+
+    <div class="status-panel">
+        <span class="blink">● ENVOI NATIVE FORM ACTIF</span> // BYPASS AGRESSIF POP-UP SECURITY <br>
+        <span style="color:#440000;">[INFO] Exploitation du mécanisme natif de soumission GET pour forcer l'acceptation inter-moteurs.</span>
+        <div class="credits">BY HNZ</div>
+    </div>
+</div>
+
+<script>
+
+    function sleep(ms) {
+        return new Promise(resolve => setTimeout(resolve, ms));
+    }
+
+    async function handleSearchSubmit(event) {
+        const queryInput = document.getElementById('query').value.trim();
+        const selectedEngine = document.getElementById('engineSelect').value;
+        const form = document.getElementById('searchForm');
+        const inputField = document.getElementById('query');
+        
+        if (!queryInput || !form || !inputField) {
+            event.preventDefault();
+            return false;
+        }
+
+        const consoleLog = document.getElementById('constructLog');
+        const resultsContainer = document.getElementById('resultsContainer');
+        
+        resultsContainer.style.display = "none";
+
+        resultsContainer.innerHTML = "";
+        consoleLog.style.display = "block";
+        consoleLog.innerHTML = "";
+
+        const logs = [
+            `[*] Interception du mot-clé : "${queryInput}"`,
+            `[*] Alignement du paramètre d'URL pour [${selectedEngine.toUpperCase()}]...`,
+            `[+] Forçage de la soumission via canal natif du navigateur...`
+        ];
+
+        // Bloquer temporairement la soumission pour afficher l'animation de console hacker
+        event.preventDefault();
+
+        for (let i = 0; i < logs.length; i++) {
+            consoleLog.innerHTML += logs[i] + "<br>";
+            await sleep(40);
+        }
+
+        let isDarkWebOnion = false;
+
+        let onionUrl = "";
+
+        // Configuration dynamique du formulaire selon le moteur sélectionné
+        switch (selectedEngine) {
+            case "google":
+                form.action = "https://www.google.com/search";
+                inputField.name = "q";
+                break;
+            case "duckduckgo":
+                form.action = "https://duckduckgo.com";
+                inputField.name = "q";
+                break;
+            case "bing":
+                form.action = "https://bing.com";
+                inputField.name = "q";
+                break;
+            case "yahoo":
+                form.action = "https://yahoo.com";
+                inputField.name = "p";
+
+                break;
+            case "ecosia":
+                form.action = "https://ecosia.org";
+                inputField.name = "q";
+                break;
+            case "ahmia":
+                form.action = "https://ahmia.fi";
+                inputField.name = "q";
+                break;
+            case "torch":
+                onionUrl = "http://xmh57jr5w4k5v3asxdh6tbz2sszczjafo6daxj2ce675cjalw67ufnld.onion" + encodeURIComponent(queryInput);
+                isDarkWebOnion = true;
+                break;
+            case "ddg_onion":
+                onionUrl = "https://duckduckgogg42xjoc72x3sjasowoarfbgcmvfimaftt6twagswzczad.onion" + encodeURIComponent(queryInput);
+                isDarkWebOnion = true;
+                break;
+            case "haystak":
+                onionUrl = "http://haystak5n52v6pl734h632olj7wakn5qj4st4bi4qisfr3gg4rr2sqqd.onion" + encodeURIComponent(queryInput);
+
+                isDarkWebOnion = true;
+                break;
+        }
+
+        if (isDarkWebOnion) {
+            consoleLog.innerHTML += `<span style="color:#ff3333;">[!] ALERTE : Réseau Tor requis pour les domaines .onion.</span><br>`;
+            await sleep(100);
+            consoleLog.style.display = "none";
+            resultsContainer.style.display = "block";
+            
+            resultsContainer.innerHTML = `
+                <div class="result-item" style="border-color: #ff3333;">
+                    <div class="result-title" style="color: #ff3333;">⚠️ LIEN SÉCURISÉ (.ONION) ISOLÉ</div>
+                    <div class="result-desc">Les navigateurs standards ne gèrent pas le routage vers le Dark Web.</div>
+                    <div style="margin-top: 10px; font-weight: bold; color: #ff6666;">COPIER CE LIEN DANS TOR BROWSER :</div>
+                    <div class="result-url">${onionUrl}</div>
+                    <div class="result-desc" style="font-size: 0.8rem; color: #555; margin-top: 5px;">Instruction : Ouvrez le logiciel Tor Browser et collez cette adresse chiffrée pour accéder au nœud caché.</div>
+                </div>
+            `;
+
+            return false;
+        }
+
+        consoleLog.innerHTML += `[+] Canal ouvert. Transmission des données...<br>`;
+        await sleep(30);
+        consoleLog.style.display = "none";
+
+        // Déclencher manuellement la soumission maintenant que le formulaire est configuré
+        form.submit();
+        return true;
+    }
+</script>
+
+</body>
+</html>
+
+
